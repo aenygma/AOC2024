@@ -6,24 +6,23 @@ import Foundation
 let data = "/Users/uttie/Projects/advent_of_code/day01/data"
 
 struct ListReader {
-    private(set) var entries: [[Int]] = []
 
-    mutating private func addToList(_ entry: [Int]) {
-        entries.append(entry)
-    }
+    let filename: URL
 
     // parseData read a given filename and unmarshalls them into lhs, and rhs arrays respectively
-    mutating func parseData(filename: String) throws {
+    func parseData(filename: URL) throws -> [[Int]] {
+        var entries = [[Int]]()
         // slurp data
-        if let contents = try? String(contentsOfFile: filename) {
+        if let contents = try? String(contentsOf: filename) {
             let lines = contents.split(separator:"\n")
             for line in lines {
                 let values = line.split(separator: " ").compactMap {Int($0)}
-                addToList(values)
+                entries.append(values)
             }
         } else {
             throw ListReaderError.failedToReadData
         }
+        return entries
     }
 
     // Monotonic helpers
@@ -52,8 +51,8 @@ struct ListReader {
         return arr.count - arr.count{isBounded($0, lower: lower, upper:upper)}
     }
 
-    func part1() {
-
+    func part1() throws {
+        let entries = try parseData(filename: filename)
         func eval(entry: [Int]) -> Bool {
             var differenceArray = [Int]()
             for (idx, each) in entry[1...entry.count-1].enumerated() {
@@ -67,8 +66,8 @@ struct ListReader {
         print("Found total safe: \(count)")
     }
 
-    func part2() {
-
+    func part2() throws {
+        let entries = try parseData(filename: filename)
         func eval(entry: [Int]) -> Bool {
             var faults: Int = 0
             var differenceArray = [Int]()
@@ -102,8 +101,8 @@ struct ListReader {
         print("Found total safe: \(results.count)")
     }
 
-    init(filename: String) throws {
-        try parseData(filename: filename)
+    init(filename: URL) {
+        self.filename = filename
     }
 }
 
@@ -135,6 +134,7 @@ extension Collection {
     }
 }
 
-var l = try ListReader(filename: data)
-l.part1()
-l.part2()
+let testData = URL(fileURLWithPath: #file).baseURL?.appendingPathComponent("data")
+var l = ListReader(filename: testData!)
+try l.part1()
+try l.part2()
