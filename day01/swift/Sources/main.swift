@@ -3,8 +3,6 @@
 
 import Foundation 
 
-let data = "/Users/uttie/Projects/advent_of_code/day00/data"
-
 struct ListReader {
     private(set) var lhs: [Int] = []
     private(set) var rhs: [Int] = []
@@ -15,10 +13,10 @@ struct ListReader {
     }
 
     // parseData read a given filename and unmarshalls them into lhs, and rhs arrays respectively
-    mutating func parseData(filename: String) throws {
+    mutating func parseData(filename: URL) throws {
         
         // slurp data
-        if let contents = try? String(contentsOfFile: filename) {
+        if let contents = try? String(contentsOf: filename) {
             let lines = contents.split(separator:"\n")
             for line in lines {
                 let values = line.split(separator: " ").compactMap {Int($0)}
@@ -35,7 +33,7 @@ struct ListReader {
         }
     }
 
-    func part1() {
+    func part1() -> Int {
         // how distance is calculated
         func distance(i: Int, j: Int) -> Int {
             return abs(i - j)
@@ -45,20 +43,21 @@ struct ListReader {
         let r = rhs.sorted(by: <)
 
         let answer = zip(l, r).compactMap(distance).sum()
-        print("Total answer: \(answer)")
+        return answer
+
     }
 
-    func part2(){
+    func part2() -> Int {
         // how distance is calculated
         func distance(needle: Int) -> Int {
             return needle * rhs.filter{$0 == needle}.count
         }
 
         let answer = lhs.map(distance).sum()
-        print("Total answer: \(answer)")
+        return answer
     }
 
-    init(filename: String) throws {
+    init(filename: URL) throws {
         try parseData(filename: filename)
     }
 }
@@ -85,6 +84,7 @@ extension Sequence where Element: Numeric {
     }
 }
 
-var l = try ListReader(filename: data)
-l.part1()
-l.part2()
+let testData = URL(fileURLWithPath: #file).baseURL?.appendingPathComponent("data")
+var l = try ListReader(filename: testData!)
+print("Part1 answer: ", l.part1())
+print("Part2 answer: ", l.part2())
