@@ -3,103 +3,59 @@
 
 import Foundation 
 
-let data = "/Users/uttie/Projects/advent_of_code/day01/data"
+let data = "/Users/uttie/Projects/advent_of_code/day00/data"
 
 struct ListReader {
-    private(set) var entries: [[Int]] = []
+    private(set) var lhs: [Int] = []
+    private(set) var rhs: [Int] = []
 
-    mutating private func addToList(_ entry: [Int]) {
-        entries.append(entry)
+    mutating func addToList(_ lhsValue: Int, _ rhsValue: Int) {
+        lhs.append(lhsValue)
+        rhs.append(rhsValue)
     }
 
     // parseData read a given filename and unmarshalls them into lhs, and rhs arrays respectively
     mutating func parseData(filename: String) throws {
+        
         // slurp data
         if let contents = try? String(contentsOfFile: filename) {
             let lines = contents.split(separator:"\n")
             for line in lines {
                 let values = line.split(separator: " ").compactMap {Int($0)}
-                addToList(values)
+
+                // catch odd cases where parsing failed
+                if values.count != 2 {
+                    print(values)
+                    throw ListReaderError.failedToUnpackData
+                }
+                addToList(values[0], values[1])
             }
         } else {
             throw ListReaderError.failedToReadData
         }
     }
 
-    // Monotonic helpers
-    private func isPositive(_ val: Int) -> Bool { return (val > 0) }
-    private func isNegative(_ val: Int) -> Bool { return (val < 0) }
-
-    // validate monotonicity
-    private func isMonotonic(arr: [Int]) -> Bool {
-        return arr.allSatisfy {isPositive($0)} || arr.allSatisfy{isNegative($0)}
-    }
-
-    private func howManyNonMonotonic(arr: [Int]) -> Int {
-        return [ arr.count - arr.count{isPositive($0)}, arr.count - arr.count{isNegative($0)}].min()! 
-    }
-
-    // validate bounds
-    private func isBounded(_ val: Int, lower: Int, upper: Int) -> Bool {
-        return (abs(val) >= lower) && (abs(val) <= upper)
-    }
-
-    private func isBounded(arr: [Int], lower: Int, upper: Int) -> Bool {
-        return arr.allSatisfy { isBounded($0, lower:lower, upper:upper) }
-    }
-
-    private func howManyNonBounded(arr: [Int], lower: Int, upper: Int) -> Int {
-        return arr.count - arr.count{isBounded($0, lower: lower, upper:upper)}
-    }
-
     func part1() {
-
-        func eval(entry: [Int]) -> Bool {
-            var differenceArray = [Int]()
-            for (idx, each) in entry[1...entry.count-1].enumerated() {
-                let difference = (each - entry[idx])
-                differenceArray.append(difference)
-            }
-            return isBounded(arr: differenceArray, lower: 1, upper: 3) && isMonotonic(arr: differenceArray)
+        // how distance is calculated
+        func distance(i: Int, j: Int) -> Int {
+            return abs(i - j)
         }
 
-        let count = entries.map(eval).filter{$0 == true}.count
-        print("Found total safe: \(count)")
+        let l = lhs.sorted(by: <)
+        let r = rhs.sorted(by: <)
+
+        let answer = zip(l, r).compactMap(distance).sum()
+        print("Total answer: \(answer)")
     }
 
-    func part2() {
-
-        func eval(entry: [Int]) -> Bool {
-            var faults: Int = 0
-            var differenceArray = [Int]()
-            for (idx, each) in entry[1...entry.count-1].enumerated() {
-                let difference = (each - entry[idx])
-                differenceArray.append(difference)
-            }
-
-            // Use part 1 to bail early if satisfied
-            if isBounded(arr: differenceArray, lower: 1, upper: 3) && isMonotonic(arr: differenceArray){
-                return true
-            }
-
-            if howManyNonMonotonic(arr: differenceArray) > 1 {
-                return false
-            }
-
-            if differenceArray.filter({ abs($0) > 3 }).count > 0 {
-                return false 
-            }
-
-            print(entry)
-            print(differenceArray)
-
-            print(howManyNonMonotonic(arr: differenceArray))
-            return true
+    func part2(){
+        // how distance is calculated
+        func distance(needle: Int) -> Int {
+            return needle * rhs.filter{$0 == needle}.count
         }
 
-        //let count = entries.map(eval).filter{$0 == true}.count
-        let results = entries.map(eval).filter{$0 == true}
-        print("Found total safe: \(results.count)")
+        let answer = lhs.map(distance).sum()
+        print("Total answer: \(answer)")
     }
 
     init(filename: String) throws {
@@ -126,12 +82,6 @@ extension ListReader {
 extension Sequence where Element: Numeric {
     func sum() -> Element {
         return reduce(0, +)
-    }
-}
-
-extension Collection {
-    func count(where test: (Element) throws -> Bool) rethrows -> Int {
-        return try self.filter(test).count
     }
 }
 
