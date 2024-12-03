@@ -3,21 +3,21 @@
 
 import Foundation
 
-let data = "/Users/uttie/Projects/advent_of_code/day02/data"
-
 @available(macOS 13, *)
 struct Mull {
 
+    let filename: URL
     let regexMul: Regex<(Substring, one: Substring, two: Substring)> 
     let enableToken = "do()"
     let disableToken = "don't()"
 
-    init() {
+    init(filename: URL) {
         regexMul = #/mul\((?<one>\d+),(?<two>\d+)\)/#
+        self.filename = filename
     }
 
     private func parseData() throws -> String {
-        return try String(contentsOfFile: data)
+        return try String(contentsOf: filename)
     }
 
     private func eval(content: String) -> Int {
@@ -52,8 +52,10 @@ extension Collection where Element: Numeric {
     }
 }
 
+let testData = URL(fileURLWithPath: #file).baseURL?.appendingPathComponent("data")
+
 if #available(macOS 13, *) {
-    let m = Mull()
+    let m = Mull(filename: testData!)
     try m.part1()
     try m.part2()
 }
