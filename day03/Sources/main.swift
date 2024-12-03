@@ -53,7 +53,6 @@ extension Collection where Element: Numeric {
 }
 
 let testData = URL(fileURLWithPath: #file).baseURL?.appendingPathComponent("data")
-
 if #available(macOS 13, *) {
     let m = Mull(filename: testData!)
     try m.part1()
