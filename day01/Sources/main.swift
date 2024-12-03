@@ -26,6 +26,32 @@ struct ListReader {
         }
     }
 
+    // Monotonic helpers
+    private func isPositive(_ val: Int) -> Bool { return (val > 0) }
+    private func isNegative(_ val: Int) -> Bool { return (val < 0) }
+
+    // validate monotonicity
+    private func isMonotonic(arr: [Int]) -> Bool {
+        return arr.allSatisfy {isPositive($0)} || arr.allSatisfy{isNegative($0)}
+    }
+
+    private func howManyNonMonotonic(arr: [Int]) -> Int {
+        return [ arr.count - arr.count{isPositive($0)}, arr.count - arr.count{isNegative($0)}].min()! 
+    }
+
+    // validate bounds
+    private func isBounded(_ val: Int, lower: Int, upper: Int) -> Bool {
+        return (abs(val) >= lower) && (abs(val) <= upper)
+    }
+
+    private func isBounded(arr: [Int], lower: Int, upper: Int) -> Bool {
+        return arr.allSatisfy { isBounded($0, lower:lower, upper:upper) }
+    }
+
+    private func howManyNonBounded(arr: [Int], lower: Int, upper: Int) -> Int {
+        return arr.count - arr.count{isBounded($0, lower: lower, upper:upper)}
+    }
+
     func part1() {
 
         func eval(entry: [Int]) -> Bool {
@@ -33,17 +59,8 @@ struct ListReader {
             for (idx, each) in entry[1...entry.count-1].enumerated() {
                 let difference = (each - entry[idx])
                 differenceArray.append(difference)
-
-                // validate bounds 
-                if abs(difference) < 1 {
-                    return false
-                } else if abs(difference) > 3 {
-                    return false
-                }
             }
-
-            // validate monotonicity
-            return differenceArray.allSatisfy {$0 > 0} || differenceArray.allSatisfy{$0 < 0}
+            return isBounded(arr: differenceArray, lower: 1, upper: 3) && isMonotonic(arr: differenceArray)
         }
 
         let count = entries.map(eval).filter{$0 == true}.count
@@ -58,32 +75,25 @@ struct ListReader {
             for (idx, each) in entry[1...entry.count-1].enumerated() {
                 let difference = (each - entry[idx])
                 differenceArray.append(difference)
-
-                // validate bounds 
-                if abs(difference) < 1 {
-                    faults += 1
-                } else if abs(difference) > 3 {
-                    faults += 1
-                }
             }
 
-            // "Problem Dampener" - checkpoint 1
-            // bail early if more than one fault
-            if faults > 1 {
+            // Use part 1 to bail early if satisfied
+            if isBounded(arr: differenceArray, lower: 1, upper: 3) && isMonotonic(arr: differenceArray){
+                return true
+            }
+
+            if howManyNonMonotonic(arr: differenceArray) > 1 {
                 return false
             }
 
-            // validate monotonicity
-            // count how many out of the entire list are monotonic increasing
-            let increaseFault = differenceArray.count - differenceArray.map {$0 > 0}.count
-            let decreaseFault = differenceArray.count - differenceArray.map {$0 < 0}.count
-
-            // "Problem Dampener" - checkpoint 2
-            if ((faults + increaseFault) > 1) || ((faults + decreaseFault > 1)) {
-                print("\(entry) - false")
-                return false
+            if differenceArray.filter({ abs($0) > 3 }).count > 0 {
+                return false 
             }
-            print("\(entry) - true - \(faults) - \(increaseFault) - \(decreaseFault)")
+
+            print(entry)
+            print(differenceArray)
+
+            print(howManyNonMonotonic(arr: differenceArray))
             return true
         }
 
@@ -119,5 +129,12 @@ extension Sequence where Element: Numeric {
     }
 }
 
+extension Collection {
+    func count(where test: (Element) throws -> Bool) rethrows -> Int {
+        return try self.filter(test).count
+    }
+}
+
 var l = try ListReader(filename: data)
 l.part1()
+l.part2()
