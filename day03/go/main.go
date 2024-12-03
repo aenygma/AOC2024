@@ -33,34 +33,41 @@ func (m *Mull) parseData() ([]byte, error) {
 	return data, nil
 }
 
+func (m *Mull) part1() (int, error) {
+	data, err := m.parseData()
+	if err != nil {
+		return 0, err
+	}
+
+	matches := regMul.FindAllSubmatch(data, -1)
+	var result int = 0
+	for _, match := range matches {
+		a, err := strconv.Atoi(string(match[1]))
+		if err != nil {
+			return result, err
+		}
+		b, err := strconv.Atoi(string(match[2]))
+		if err != nil {
+			return result, err
+		}
+		result += a * b
+	}
+	return result, nil
+}
+
 func main() {
 
 	m := Mull{
 		filename: testData(),
 	}
 
-	data, err := m.parseData()
+	// Part 1
+	result, err := m.part1()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
-	matches := regMul.FindAllSubmatch(data, -1)
-	//fmt.Printf("%q\n", matches)
-	var result = 0
-	for _, match := range matches {
-		fmt.Printf("%v\n", match)
-		a, err := strconv.Atoi(string(match[1]))
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		b, err := strconv.Atoi(string(match[2]))
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		result += a * b
-	}
 	fmt.Println(result)
+
+	// Part 2
 }
