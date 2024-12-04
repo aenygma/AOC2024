@@ -84,7 +84,7 @@ extension Sequence where Element: Numeric {
     }
 }
 
-let testData = URL(fileURLWithPath: #file).baseURL?.appendingPathComponent("data")
+let testData = URL(fileURLWithPath: #file).baseURL?.appendingPathComponent("../data")
 var l = try ListReader(filename: testData!)
 print("Part1 answer: ", l.part1())
 print("Part2 answer: ", l.part2())
